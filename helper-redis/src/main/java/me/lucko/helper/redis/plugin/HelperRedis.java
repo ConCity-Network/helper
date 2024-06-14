@@ -179,30 +179,40 @@ public class HelperRedis implements Redis {
         private final Set<String> subscribed = ConcurrentHashMap.newKeySet();
 
         @Override
-        public void onSubscribe(byte[] channel, int subscribedChannels) {
+        public void subscribe(byte[]... channels) {
             this.lock.lock();
             try {
-                String channelName = new String(channel, StandardCharsets.UTF_8);
-                if (this.subscribed.add(channelName)) {
-                    super.subscribe(channel);
+                for (byte[] channel : channels) {
+                    String channelName = new String(channel, StandardCharsets.UTF_8);
+                    if (this.subscribed.add(channelName)) {
+                        super.subscribe(channel);
+                    }
                 }
             } finally {
                 this.lock.unlock();
             }
+        }
+
+        @Override
+        public void unsubscribe(byte[]... channels) {
+            this.lock.lock();
+            try {
+                super.unsubscribe(channels);
+            } finally {
+                this.lock.unlock();
+            }
+        }
+
+        @Override
+        public void onSubscribe(byte[] channel, int subscribedChannels) {
             Log.info("[helper-redis] Subscribed to channel: " + new String(channel, StandardCharsets.UTF_8));
         }
 
         @Override
         public void onUnsubscribe(byte[] channel, int subscribedChannels) {
-            this.lock.lock();
-            try {
-                super.unsubscribe(channel);
-                String channelName = new String(channel, StandardCharsets.UTF_8);
-                this.subscribed.remove(channelName);
-                Log.info("[helper-redis] Unsubscribed from channel: " + channelName);
-            } finally {
-                this.lock.unlock();
-            }
+            String channelName = new String(channel, StandardCharsets.UTF_8);
+            Log.info("[helper-redis] Unsubscribed from channel: " + channelName);
+            this.subscribed.remove(channelName);
         }
 
         @Override
