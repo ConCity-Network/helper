@@ -73,7 +73,7 @@
                             </artifactSet>
                             <relocations>
                                 <relocation>
-                                    <pattern>redis.clients.util</pattern>
+                                    <pattern>redis.clients</pattern>
                                     <shadedPattern>${shade.pattern}jedisutil</shadedPattern>
                                 </relocation>
                                 <relocation>
